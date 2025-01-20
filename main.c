@@ -67,24 +67,33 @@ int main(void)
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 
     SDL_Event event;
-    bool game = true;
-    while (game)
+    bool run = true;
+    int matrix[ROWS][COLUMNS];
+    init_matrix(matrix);
+    Uint32 lastUpdateTime = SDL_GetTicks();
+    while (run)
     {
+        constexpr Uint32 updateInterval = 1000;
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT || event.type == SDL_APP_TERMINATING)
             {
-                game = false;
+                run = false;
             }
         }
 
-        int matrix[ROWS][COLUMNS];
-        init_matrix(matrix);
-        draw_matrix(surface, matrix);
+        const Uint32 currentTime = SDL_GetTicks();
 
-        draw_grid(surface);
+        if (currentTime - lastUpdateTime >= updateInterval)
+        {
+            init_matrix(matrix);
+            draw_matrix(surface, matrix);
+            draw_grid(surface);
+            SDL_UpdateWindowSurface(window);
 
-        SDL_UpdateWindowSurface(window);
-        SDL_Delay(1000);
+            lastUpdateTime = currentTime;
+        }
+
+        SDL_Delay(50);
     }
 }
