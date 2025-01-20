@@ -150,7 +150,7 @@ int main(void)
     Uint32 lastUpdateTime = SDL_GetTicks();
     while (run)
     {
-        constexpr Uint32 updateInterval = 1000;
+        constexpr Uint32 updateInterval = 500;
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT || event.type == SDL_APP_TERMINATING)
