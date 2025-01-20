@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include <time.h>
 
 #define WINDOW_NAME "Conway's Game of Life"
 #define WINDOW_WIDTH 900
 #define WINDOW_HEIGHT 600
 
 #define CELL_SIZE 30
-#define COLUMNS (WINDOW_WIDTH / CELL_SIZE)
 #define ROWS (WINDOW_HEIGHT / CELL_SIZE)
+#define COLUMNS (WINDOW_WIDTH / CELL_SIZE)
 
+#define DEFAULT_COLOR 0x00000000
 #define GRID_COLOR 0x97225142
 #define CELL_COLOR 0x17498153
 
@@ -26,16 +28,42 @@ void draw_grid(SDL_Surface* surface)
     }
 }
 
-void fill_cell(SDL_Surface* surface, int x, int y)
+void draw_cell(SDL_Surface* surface, const int x, const int y, const int cell_value)
 {
-    SDL_Rect rect = {x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE};
-    SDL_FillRect(surface, &rect, CELL_COLOR);
+    const Uint32 color = cell_value == 0 ? DEFAULT_COLOR : CELL_COLOR;
+
+    const SDL_Rect rect = {x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE};
+    SDL_FillRect(surface, &rect, color);
+}
+
+void init_matrix(int matrix[ROWS][COLUMNS])
+{
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLUMNS; col++)
+        {
+            matrix[row][col] = rand() % 2;
+        }
+    }
+}
+
+void draw_matrix(SDL_Surface* surface, int matrix[ROWS][COLUMNS])
+{
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLUMNS; col++)
+        {
+            const int cell_value = matrix[row][col];
+            draw_cell(surface, col, row, cell_value);
+        }
+    }
 }
 
 int main(void)
 {
     SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window* window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH,WINDOW_HEIGHT, 0);
+    SDL_Window* window = SDL_CreateWindow(WINDOW_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH,
+                                          WINDOW_HEIGHT, 0);
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 
     SDL_Event event;
@@ -49,9 +77,14 @@ int main(void)
                 game = false;
             }
         }
+
+        int matrix[ROWS][COLUMNS];
+        init_matrix(matrix);
+        draw_matrix(surface, matrix);
+
         draw_grid(surface);
-        fill_cell(surface, 10, 10);
+
         SDL_UpdateWindowSurface(window);
-        SDL_Delay(100);
+        SDL_Delay(1000);
     }
 }
