@@ -12,10 +12,13 @@
 
 #define DEFAULT_COLOR 0x00000000
 #define GRID_COLOR 0x97225142
-#define CELL_COLOR 0x17498153
+#define CELL_COLOR_TYPE_0 0x17498153
+#define CELL_COLOR_TYPE_1 0x13491357
+#define CELL_COLOR_TYPE_2 0x17598781
 
 typedef struct
 {
+    // int type;
     bool is_alive;
     int age;
 } Cell;
@@ -36,7 +39,23 @@ void draw_grid(SDL_Surface* surface)
 
 void draw_cell(SDL_Surface* surface, const int x, const int y, const Cell cell)
 {
-    const Uint32 color = cell.is_alive == 0 ? DEFAULT_COLOR : CELL_COLOR;
+    Uint32 color = DEFAULT_COLOR;
+    if (cell.is_alive)
+    {
+        color = CELL_COLOR_TYPE_0;
+        // if (cell.type == 0)
+        // {
+        //     color = CELL_COLOR_TYPE_0;
+        // }
+        // else if (cell.type == 1)
+        // {
+        //     color = CELL_COLOR_TYPE_1;
+        // }
+        // else if (cell.type == 2)
+        // {
+        //     color = CELL_COLOR_TYPE_2;
+        // }
+    }
 
     const SDL_Rect rect = {x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE};
     SDL_FillRect(surface, &rect, color);
@@ -50,6 +69,7 @@ void init_matrix(Cell matrix[ROWS][COLUMNS])
         {
             matrix[row][col].is_alive = rand() % 2;
             matrix[row][col].age = 0;
+            // matrix[row][col].type = 0;// rand() % 3;
         }
     }
 }
@@ -69,7 +89,6 @@ void draw_matrix(SDL_Surface* surface, Cell matrix[ROWS][COLUMNS])
 int count_neighbors(const int row, const int col, Cell matrix[ROWS][COLUMNS])
 {
     int neighbors = 0;
-
     for (int y = -1; y <= 1; y++)
     {
         for (int x = -1; x <= 1; x++)
@@ -107,10 +126,12 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
                 if (neighbor_count < 2 || neighbor_count > 3)
                 {
                     temp_matrix[row][col].is_alive = false;
+                    temp_matrix[row][col].age = 0;
                 }
                 else
                 {
                     temp_matrix[row][col].is_alive = true;
+                    temp_matrix[row][col].age = matrix[row][col].age + 1;
                 }
             }
             else
@@ -157,6 +178,14 @@ int main(void)
             {
                 run = false;
             }
+            // if (event.type == SDL_MOUSEBUTTONDOWN)
+            // {
+            //     int mouseX, mouseY;
+            //     SDL_GetMouseState(&mouseX, &mouseY);
+            //     const int col = mouseX / CELL_SIZE;
+            //     const int row = mouseY / CELL_SIZE;
+            //     matrix[row][col].is_alive = !matrix[row][col].is_alive;
+            // }
         }
 
         const Uint32 currentTime = SDL_GetTicks();
