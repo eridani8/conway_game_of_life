@@ -63,6 +63,11 @@ void draw_cell(SDL_Surface* surface, const int x, const int y, const Cell cell)
     SDL_FillRect(surface, &rect, color);
 }
 
+int get_random_cell_type()
+{
+    return (int)arc4random_uniform(3);
+}
+
 void init_matrix(Cell matrix[ROWS][COLUMNS])
 {
     for (int row = 0; row < ROWS; row++)
@@ -70,8 +75,8 @@ void init_matrix(Cell matrix[ROWS][COLUMNS])
         for (int col = 0; col < COLUMNS; col++)
         {
             const Cell cell = {
-                (int)arc4random_uniform(3),
-                (int)arc4random_uniform(5),
+                get_random_cell_type(),
+                (int)arc4random_uniform(9) == 0,
                 0,
                 row,
                 col
@@ -180,10 +185,11 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
                 {
                     // Мертвая клетка оживает, если соседей ровно 3
                     current_cell.is_alive = true;
-                    current_cell.age += 1;
+                    current_cell.age = 0;
+                    current_cell.type = get_random_cell_type();
                 }
             }
-            if (current_cell.age >= 5 && (int)arc4random_uniform(21) > 12)
+            if ((int)arc4random_uniform(70) <= current_cell.age)
             {
                 current_cell.is_alive = false;
                 current_cell.age = 0;
