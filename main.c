@@ -18,7 +18,7 @@
 
 typedef struct
 {
-    // int type;
+    int type;
     bool is_alive;
     int age;
     int row;
@@ -44,15 +44,15 @@ void draw_cell(SDL_Surface* surface, const int x, const int y, const Cell cell)
     Uint32 color = DEFAULT_COLOR;
     if (cell.is_alive)
     {
-        color = CELL_COLOR_TYPE_0;
-        // if (cell.type == 0)
-        // {
-        //     color = CELL_COLOR_TYPE_0;
-        // }
-        // else if (cell.type == 1)
-        // {
-        //     color = CELL_COLOR_TYPE_1;
-        // }
+        // color = CELL_COLOR_TYPE_0;
+        if (cell.type == 0)
+        {
+            color = CELL_COLOR_TYPE_0;
+        }
+        else if (cell.type == 1)
+        {
+            color = CELL_COLOR_TYPE_1;
+        }
         // else if (cell.type == 2)
         // {
         //     color = CELL_COLOR_TYPE_2;
@@ -65,12 +65,14 @@ void draw_cell(SDL_Surface* surface, const int x, const int y, const Cell cell)
 
 void init_matrix(Cell matrix[ROWS][COLUMNS])
 {
+    srand(time(nullptr));
     for (int row = 0; row < ROWS; row++)
     {
         for (int col = 0; col < COLUMNS; col++)
         {
             const Cell cell = {
-                rand() > RAND_MAX * 9.0 / 10.0,
+                rand() % 2,
+                rand() % 2,
                 0,
                 row,
                 col
@@ -92,7 +94,39 @@ void draw_matrix(SDL_Surface* surface, Cell matrix[ROWS][COLUMNS])
     }
 }
 
-int count_neighbors(const int row, const int col, Cell matrix[ROWS][COLUMNS])
+int life_count(Cell matrix[ROWS][COLUMNS])
+{
+    int life = 0;
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLUMNS; col++)
+        {
+            if (matrix[row][col].is_alive)
+            {
+                life++;
+            }
+        }
+    }
+    return life;
+}
+
+int death_count(Cell matrix[ROWS][COLUMNS])
+{
+    int death = 0;
+    for (int row = 0; row < ROWS; row++)
+    {
+        for (int col = 0; col < COLUMNS; col++)
+        {
+            if (!matrix[row][col].is_alive)
+            {
+                death++;
+            }
+        }
+    }
+    return death;
+}
+
+int neighbors_count(const int row, const int col, Cell matrix[ROWS][COLUMNS])
 {
     int neighbors = 0;
     for (int y = -1; y <= 1; y++)
@@ -124,7 +158,7 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
         for (int col = 0; col < COLUMNS; col++)
         {
             Cell current_cell = matrix[row][col];
-            const int neighbor_count = count_neighbors(row, col, matrix);
+            const int neighbor_count = neighbors_count(row, col, matrix);
 
             if (current_cell.is_alive)
             {
@@ -150,38 +184,11 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
                     current_cell.age += 1;
                 }
             }
-            if (current_cell.age > 6)
+            if (life_count(matrix) > 500 && current_cell.age > 3)
             {
                 current_cell.is_alive = false;
                 current_cell.age = 0;
             }
-
-
-            // if (current_cell.is_alive)
-            // {
-            //     if (neighbor_count < 2 || neighbor_count > 3)
-            //     {
-            //         current_cell.is_alive = false;
-            //         current_cell.age = 0;
-            //     }
-            //     else
-            //     {
-            //         current_cell.is_alive = true;
-            //         current_cell.age++;
-            //     }
-            // }
-            // else
-            // {
-            //     if (neighbor_count == 3)
-            //     {
-            //         current_cell.is_alive = true;
-            //     }
-            //     else
-            //     {
-            //         current_cell.is_alive = false;
-            //     }
-            // }
-
             matrix[row][col] = current_cell;
         }
     }
@@ -227,7 +234,7 @@ int main(void)
             draw_matrix(surface, matrix);
             draw_grid(surface);
             SDL_UpdateWindowSurface(window);
-            printf ("iterations: %d\n", iterations);
+            printf ("iteration: %d life: %d death: %d\n", iterations, life_count(matrix), death_count(matrix));
             lastUpdateTime = currentTime;
             iterations++;
         }
