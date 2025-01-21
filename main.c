@@ -70,7 +70,7 @@ void init_matrix(Cell matrix[ROWS][COLUMNS])
         for (int col = 0; col < COLUMNS; col++)
         {
             const Cell cell = {
-                rand() % 2 && rand() % 2,
+                rand() > RAND_MAX * 9.0 / 10.0,
                 0,
                 row,
                 col
@@ -126,49 +126,63 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
             Cell current_cell = matrix[row][col];
             const int neighbor_count = count_neighbors(row, col, matrix);
 
-            if (neighbor_count < 2)
+            if (current_cell.is_alive)
+            {
+                if (neighbor_count < 2 || neighbor_count > 3)
+                {
+                    // Клетка умирает, если соседей меньше 2 или больше 3
+                    current_cell.is_alive = false;
+                    current_cell.age = 0;
+                }
+                else
+                {
+                    // Клетка остается живой, если соседей 2 или 3
+                    current_cell.is_alive = true;
+                    current_cell.age += 1;
+                }
+            }
+            else
+            {
+                if (neighbor_count == 3)
+                {
+                    // Мертвая клетка оживает, если соседей ровно 3
+                    current_cell.is_alive = true;
+                    current_cell.age += 1;
+                }
+            }
+            if (current_cell.age > 6)
             {
                 current_cell.is_alive = false;
-            }
-            if (current_cell.is_alive && (neighbor_count == 2 || neighbor_count == 3))
-            {
-                current_cell.is_alive = true;
-            }
-            if (current_cell.is_alive && neighbor_count > 3)
-            {
-                current_cell.is_alive = false;
-            }
-            if (!current_cell.is_alive && neighbor_count == 3)
-            {
-                current_cell.is_alive = true;
+                current_cell.age = 0;
             }
 
-            matrix[row][col] = current_cell;
 
-            // if (matrix[row][col].is_alive)
+            // if (current_cell.is_alive)
             // {
             //     if (neighbor_count < 2 || neighbor_count > 3)
             //     {
-            //         temp_matrix[row][col].is_alive = false;
-            //         temp_matrix[row][col].age = 0;
+            //         current_cell.is_alive = false;
+            //         current_cell.age = 0;
             //     }
             //     else
             //     {
-            //         temp_matrix[row][col].is_alive = true;
-            //         temp_matrix[row][col].age = matrix[row][col].age + 1;
+            //         current_cell.is_alive = true;
+            //         current_cell.age++;
             //     }
             // }
             // else
             // {
             //     if (neighbor_count == 3)
             //     {
-            //         temp_matrix[row][col].is_alive = true;
+            //         current_cell.is_alive = true;
             //     }
             //     else
             //     {
-            //         temp_matrix[row][col].is_alive = false;
+            //         current_cell.is_alive = false;
             //     }
             // }
+
+            matrix[row][col] = current_cell;
         }
     }
 }
@@ -185,6 +199,7 @@ int main(void)
     Cell matrix[ROWS][COLUMNS];
     init_matrix(matrix);
     Uint32 lastUpdateTime = SDL_GetTicks();
+    int iterations = 0;
     while (run)
     {
         constexpr Uint32 updateInterval = 100;
@@ -212,8 +227,9 @@ int main(void)
             draw_matrix(surface, matrix);
             draw_grid(surface);
             SDL_UpdateWindowSurface(window);
-
+            printf ("iterations: %d\n", iterations);
             lastUpdateTime = currentTime;
+            iterations++;
         }
 
         SDL_Delay(100);
