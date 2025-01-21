@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <SDL2/SDL.h>
 #include <time.h>
+#include <stdlib.h>
 
 #define WINDOW_NAME "Conway's Game of Life"
 #define WINDOW_WIDTH 900
@@ -44,7 +45,6 @@ void draw_cell(SDL_Surface* surface, const int x, const int y, const Cell cell)
     Uint32 color = DEFAULT_COLOR;
     if (cell.is_alive)
     {
-        // color = CELL_COLOR_TYPE_0;
         if (cell.type == 0)
         {
             color = CELL_COLOR_TYPE_0;
@@ -53,10 +53,10 @@ void draw_cell(SDL_Surface* surface, const int x, const int y, const Cell cell)
         {
             color = CELL_COLOR_TYPE_1;
         }
-        // else if (cell.type == 2)
-        // {
-        //     color = CELL_COLOR_TYPE_2;
-        // }
+        else if (cell.type == 2)
+        {
+            color = CELL_COLOR_TYPE_2;
+        }
     }
 
     const SDL_Rect rect = {x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE};
@@ -65,14 +65,13 @@ void draw_cell(SDL_Surface* surface, const int x, const int y, const Cell cell)
 
 void init_matrix(Cell matrix[ROWS][COLUMNS])
 {
-    srand(time(nullptr));
     for (int row = 0; row < ROWS; row++)
     {
         for (int col = 0; col < COLUMNS; col++)
         {
             const Cell cell = {
-                rand() % 2,
-                rand() % 2,
+                (int)arc4random_uniform(3),
+                (int)arc4random_uniform(5),
                 0,
                 row,
                 col
@@ -184,7 +183,7 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
                     current_cell.age += 1;
                 }
             }
-            if (life_count(matrix) > 500 && current_cell.age > 3)
+            if (current_cell.age >= 5 && (int)arc4random_uniform(21) > 12)
             {
                 current_cell.is_alive = false;
                 current_cell.age = 0;
@@ -234,7 +233,7 @@ int main(void)
             draw_matrix(surface, matrix);
             draw_grid(surface);
             SDL_UpdateWindowSurface(window);
-            printf ("iteration: %d life: %d death: %d\n", iterations, life_count(matrix), death_count(matrix));
+            printf("iteration: %d life: %d death: %d\n", iterations, life_count(matrix), death_count(matrix));
             lastUpdateTime = currentTime;
             iterations++;
         }
