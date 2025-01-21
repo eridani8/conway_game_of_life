@@ -6,7 +6,7 @@
 #define WINDOW_WIDTH 900
 #define WINDOW_HEIGHT 600
 
-#define CELL_SIZE 20
+#define CELL_SIZE 10
 #define ROWS (WINDOW_HEIGHT / CELL_SIZE)
 #define COLUMNS (WINDOW_WIDTH / CELL_SIZE)
 
@@ -21,6 +21,8 @@ typedef struct
     // int type;
     bool is_alive;
     int age;
+    int row;
+    int col;
 } Cell;
 
 void draw_grid(SDL_Surface* surface)
@@ -67,9 +69,13 @@ void init_matrix(Cell matrix[ROWS][COLUMNS])
     {
         for (int col = 0; col < COLUMNS; col++)
         {
-            matrix[row][col].is_alive = rand() % 2;
-            matrix[row][col].age = 0;
-            // matrix[row][col].type = 0;// rand() % 3;
+            const Cell cell = {
+                rand() % 2 && rand() % 2,
+                0,
+                row,
+                col
+            };
+            matrix[row][col] = cell;
         }
     }
 }
@@ -113,46 +119,56 @@ int count_neighbors(const int row, const int col, Cell matrix[ROWS][COLUMNS])
 
 void simulation_step(Cell matrix[ROWS][COLUMNS])
 {
-    Cell temp_matrix[ROWS][COLUMNS];
-
     for (int row = 0; row < ROWS; row++)
     {
         for (int col = 0; col < COLUMNS; col++)
         {
+            Cell current_cell = matrix[row][col];
             const int neighbor_count = count_neighbors(row, col, matrix);
 
-            if (matrix[row][col].is_alive)
+            if (neighbor_count < 2)
             {
-                if (neighbor_count < 2 || neighbor_count > 3)
-                {
-                    temp_matrix[row][col].is_alive = false;
-                    temp_matrix[row][col].age = 0;
-                }
-                else
-                {
-                    temp_matrix[row][col].is_alive = true;
-                    temp_matrix[row][col].age = matrix[row][col].age + 1;
-                }
+                current_cell.is_alive = false;
             }
-            else
+            if (current_cell.is_alive && (neighbor_count == 2 || neighbor_count == 3))
             {
-                if (neighbor_count == 3)
-                {
-                    temp_matrix[row][col].is_alive = true;
-                }
-                else
-                {
-                    temp_matrix[row][col].is_alive = false;
-                }
+                current_cell.is_alive = true;
             }
-        }
-    }
+            if (current_cell.is_alive && neighbor_count > 3)
+            {
+                current_cell.is_alive = false;
+            }
+            if (!current_cell.is_alive && neighbor_count == 3)
+            {
+                current_cell.is_alive = true;
+            }
 
-    for (int row = 0; row < ROWS; row++)
-    {
-        for (int col = 0; col < COLUMNS; col++)
-        {
-            matrix[row][col] = temp_matrix[row][col];
+            matrix[row][col] = current_cell;
+
+            // if (matrix[row][col].is_alive)
+            // {
+            //     if (neighbor_count < 2 || neighbor_count > 3)
+            //     {
+            //         temp_matrix[row][col].is_alive = false;
+            //         temp_matrix[row][col].age = 0;
+            //     }
+            //     else
+            //     {
+            //         temp_matrix[row][col].is_alive = true;
+            //         temp_matrix[row][col].age = matrix[row][col].age + 1;
+            //     }
+            // }
+            // else
+            // {
+            //     if (neighbor_count == 3)
+            //     {
+            //         temp_matrix[row][col].is_alive = true;
+            //     }
+            //     else
+            //     {
+            //         temp_matrix[row][col].is_alive = false;
+            //     }
+            // }
         }
     }
 }
@@ -171,7 +187,7 @@ int main(void)
     Uint32 lastUpdateTime = SDL_GetTicks();
     while (run)
     {
-        constexpr Uint32 updateInterval = 500;
+        constexpr Uint32 updateInterval = 100;
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_QUIT || event.type == SDL_APP_TERMINATING)
