@@ -200,14 +200,14 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
 }
 
 int iterations = 0;
-int speed = 100;
+int update_interval = 100;
 
 void draw_all(SDL_Surface* surface, SDL_Window* window, Cell matrix[ROWS][COLUMNS])
 {
     draw_matrix(surface, matrix);
     draw_grid(surface);
     SDL_UpdateWindowSurface(window);
-    printf("iteration: %d; life: %d; death: %d;\n", iterations, life_count(matrix), death_count(matrix));
+    printf("iteration: %d; interval: %d; life: %d; death: %d;\n", iterations, update_interval, life_count(matrix), death_count(matrix));
 }
 
 int main(void)
@@ -220,6 +220,7 @@ int main(void)
     Cell matrix[ROWS][COLUMNS];
     init_matrix(matrix);
 
+    Uint32 lastUpdateTime = SDL_GetTicks();
     SDL_Event event;
     bool run = true;
     bool paused = false;
@@ -245,7 +246,24 @@ int main(void)
                     draw_all(surface, window, matrix);
                     break;
                 case SDLK_RIGHT:
-                    speed += 100;
+                    if (update_interval + 50 <= 500)
+                    {
+                        update_interval += 50;
+                    }
+                    break;
+                case SDLK_LEFT:
+                    if (update_interval - 50 > 0)
+                    {
+                        update_interval -= 50;
+                    }
+                    else if (update_interval - 10 > 0)
+                    {
+                        update_interval -= 10;
+                    }
+                    else if (update_interval - 2 > 0)
+                    {
+                        update_interval -= 2;
+                    }
                     break;
                 default: ;
                 }
@@ -253,17 +271,22 @@ int main(void)
             default:
 
 
+
             }
         }
 
         if (!paused)
         {
-            simulation_step(matrix);
-            draw_all(surface, window, matrix);
-
-            iterations++;
+            const Uint32 currentTime = SDL_GetTicks();
+            if (currentTime - lastUpdateTime >= update_interval)
+            {
+                simulation_step(matrix);
+                draw_all(surface, window, matrix);
+                lastUpdateTime = currentTime;
+                iterations++;
+            }
         }
 
-        SDL_Delay(speed);
+        // SDL_Delay(100);
     }
 }
