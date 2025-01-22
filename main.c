@@ -199,6 +199,17 @@ void simulation_step(Cell matrix[ROWS][COLUMNS])
     }
 }
 
+int iterations = 0;
+int speed = 100;
+
+void draw_all(SDL_Surface* surface, SDL_Window* window, Cell matrix[ROWS][COLUMNS])
+{
+    draw_matrix(surface, matrix);
+    draw_grid(surface);
+    SDL_UpdateWindowSurface(window);
+    printf("iteration: %d; life: %d; death: %d;\n", iterations, life_count(matrix), death_count(matrix));
+}
+
 int main(void)
 {
     SDL_Init(SDL_INIT_VIDEO);
@@ -206,44 +217,53 @@ int main(void)
                                           WINDOW_HEIGHT, 0);
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 
-    SDL_Event event;
-    bool run = true;
     Cell matrix[ROWS][COLUMNS];
     init_matrix(matrix);
-    Uint32 lastUpdateTime = SDL_GetTicks();
-    int iterations = 0;
+
+    SDL_Event event;
+    bool run = true;
+    bool paused = false;
+
     while (run)
     {
-        constexpr Uint32 updateInterval = 100;
         while (SDL_PollEvent(&event))
         {
-            if (event.type == SDL_QUIT || event.type == SDL_APP_TERMINATING)
+            switch (event.type)
             {
+            case SDL_QUIT:
                 run = false;
+                break;
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym)
+                {
+                case SDLK_SPACE:
+                    paused = !paused;
+                    break;
+                case SDLK_BACKSPACE:
+                    iterations = 0;
+                    init_matrix(matrix);
+                    draw_all(surface, window, matrix);
+                    break;
+                case SDLK_RIGHT:
+                    speed += 100;
+                    break;
+                default: ;
+                }
+                break;
+            default:
+
+
             }
-            // if (event.type == SDL_MOUSEBUTTONDOWN)
-            // {
-            //     int mouseX, mouseY;
-            //     SDL_GetMouseState(&mouseX, &mouseY);
-            //     const int col = mouseX / CELL_SIZE;
-            //     const int row = mouseY / CELL_SIZE;
-            //     matrix[row][col].is_alive = !matrix[row][col].is_alive;
-            // }
         }
 
-        const Uint32 currentTime = SDL_GetTicks();
-
-        if (currentTime - lastUpdateTime >= updateInterval)
+        if (!paused)
         {
             simulation_step(matrix);
-            draw_matrix(surface, matrix);
-            draw_grid(surface);
-            SDL_UpdateWindowSurface(window);
-            printf("iteration: %d life: %d death: %d\n", iterations, life_count(matrix), death_count(matrix));
-            lastUpdateTime = currentTime;
+            draw_all(surface, window, matrix);
+
             iterations++;
         }
 
-        SDL_Delay(100);
+        SDL_Delay(speed);
     }
 }
