@@ -207,7 +207,8 @@ void draw_all(SDL_Surface* surface, SDL_Window* window, Cell matrix[ROWS][COLUMN
     draw_matrix(surface, matrix);
     draw_grid(surface);
     SDL_UpdateWindowSurface(window);
-    printf("iteration: %d; interval: %d; life: %d; death: %d;\n", iterations, update_interval, life_count(matrix), death_count(matrix));
+    printf("iteration: %d; interval: %d; life: %d; death: %d;\n", iterations, update_interval, life_count(matrix),
+           death_count(matrix));
 }
 
 int main(void)
@@ -267,10 +268,10 @@ int main(void)
                     break;
                 default: ;
                 }
+            case SDL_MOUSEBUTTONDOWN:
+                
                 break;
             default:
-
-
 
             }
         }
